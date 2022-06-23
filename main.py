@@ -3,8 +3,7 @@ from flask_sqlalchemy import SQLAlchemy  # SQLAlchemy is ORM which can be used i
 from flask_restful import Resource, Api  # Rest for Flask
 
 app = Flask(__name__)
-app.config[
-    'SQLALCHEMY_DATABASE_URI'] = f"postgresql://postgres:123456@localhost:5432/store"  # configuration of the app object with PostgreSQL
+app.config['SQLALCHEMY_DATABASE_URI'] = f"postgresql://postgres:123456@localhost:5432/store"  # configuration of the app object with PostgreSQL
 
 db = SQLAlchemy(app)  # connection of the flask app object with the ORM
 api = Api(app)  #
@@ -25,17 +24,30 @@ class BookModel(db.Model):  # model of book for the SQL database table
         return {c.name: getattr(self, c.name) for c in self.__table__.columns}
 
 
+class ReaderModel(db.Model):
+    # TODO
+    pass
+
 class Books(Resource):
     def get(self):
-        books = [b.as_dict() for b in BookModel.query.all()]  # Освен да създава може и да търси в таблици
-        return {"books": books}
+        books = [b.as_dict() for b in BookModel.query.all()]    # Освен да създава може и да търси в таблици
+        return {"books": books}                                 # Обръщаме всички книги като речник чрез метода as_dict
+                                                                # и връщаме речник с вложения речник от предния ред
 
     def post(self):
         data = request.get_json()
         book = BookModel(**data)  # същото но с повече писане BookModel(title=data.get('title'), author=data.get('author'))
         db.session.add(book)    # добавяме заявката в базата данни
-        db.session.comit()      # записваме добавката в базатада данни
-        return "ok"
+        db.session.commit()      # записваме добавката в базатада данни
+        return book.as_dict()
+
+    def delete(self):
+        pass # TODO
+
+class Reader(Resource):
+    # TODO
+    def get(self):
+        pass
 
 
 # comanda koqto se prawi samo predi da uchim migracii
