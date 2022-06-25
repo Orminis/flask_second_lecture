@@ -1,12 +1,16 @@
 from flask import Flask, request
 from flask_sqlalchemy import SQLAlchemy  # SQLAlchemy is ORM which can be used in Flask
 from flask_restful import Resource, Api  # Rest for Flask
+from decouple import config
+from flask_migrate import Migrate
 
 app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = f"postgresql://postgres:123456@localhost:5432/store"  # configuration of the app object with PostgreSQL
+app.config['SQLALCHEMY_DATABASE_URI'] = f'postgresql://{config("DB_USER")}:{config("DB_PASSWORD")}@' \
+                                        f'localhost:{config("DB_PORT")}/{config("DB_NAME")}'  # configuration of the app object with PostgreSQL
 
 db = SQLAlchemy(app)  # connection of the flask app object with the ORM
 api = Api(app)  #
+migrate = Migrate(app, db)
 
 
 class BookModel(db.Model):  # model of book for the SQL database table
@@ -24,10 +28,6 @@ class BookModel(db.Model):  # model of book for the SQL database table
         return {c.name: getattr(self, c.name) for c in self.__table__.columns}
 
 
-class ReaderModel(db.Model):
-    # TODO
-    pass
-
 class Books(Resource):
     def get(self):
         books = [b.as_dict() for b in BookModel.query.all()]    # Освен да създава може и да търси в таблици
@@ -40,15 +40,6 @@ class Books(Resource):
         db.session.add(book)    # добавяме заявката в базата данни
         db.session.commit()      # записваме добавката в базатада данни
         return book.as_dict()
-
-    def delete(self):
-        pass # TODO
-
-class Reader(Resource):
-    # TODO
-    def get(self):
-        pass
-
 
 # comanda koqto se prawi samo predi da uchim migracii
 # db.create_all()
