@@ -19,12 +19,27 @@ class BookModel(db.Model):  # model of book for the SQL database table
     pk = db.Column(db.Integer, primary_key=True)  # Primary key Column
     title = db.Column(db.String(255), nullable=False)  # Column for the book's name    # db.String
     author = db.Column(db.String(255), nullable=False)  # Column for the author's name
+    # fk = db.Column(db.Integer, fk=
 
     def __repr__(self):
-        return f"<{self.pl}> {self.title} from {self.author}"
+        return f"<{self.pk}> {self.title} from {self.author}"
 
     def as_dict(self):  # връща обекта като речник за да може да се превърне в json (няма да се наложи да го ползваме
                         # този метод след като почнем да ползваме схеми.)
+        return {c.name: getattr(self, c.name) for c in self.__table__.columns}
+
+
+class ReaderModel(db.Model):
+    __tablename__ = "readers"
+
+    pk = db.Column(db.Integer, primary_key=True)
+    first_name = db.Column(db.String(255), nullable=False)
+    last_name = db.Column(db.String(255), nullable=False)
+
+    def __repr__(self):
+        return f"<{self.pk}> {self.first_name} {self.last_name}"
+
+    def as_dict(self):
         return {c.name: getattr(self, c.name) for c in self.__table__.columns}
 
 
@@ -41,7 +56,7 @@ class Books(Resource):
         db.session.commit()      # записваме добавката в базатада данни
         return book.as_dict()
 
-# comanda koqto se prawi samo predi da uchim migracii
+# команда която ползваме само преди да вземем миграции
 # db.create_all()
 
 api.add_resource(Books, "/books/")
