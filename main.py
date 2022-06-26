@@ -19,13 +19,14 @@ class BookModel(db.Model):  # model of book for the SQL database table
     pk = db.Column(db.Integer, primary_key=True)  # Primary key Column
     title = db.Column(db.String(255), nullable=False)  # Column for the book's name    # db.String
     author = db.Column(db.String(255), nullable=False)  # Column for the author's name
-    # fk = db.Column(db.Integer, fk=
+    reader_pk = db.Column(db.Integer,
+                          db.ForeignKey("readers.pk"))  # one-to-many relationship Foreign key to Reader table pk
 
     def __repr__(self):
         return f"<{self.pk}> {self.title} from {self.author}"
 
     def as_dict(self):  # връща обекта като речник за да може да се превърне в json (няма да се наложи да го ползваме
-                        # този метод след като почнем да ползваме схеми.)
+        # този метод след като почнем да ползваме схеми.)
         return {c.name: getattr(self, c.name) for c in self.__table__.columns}
 
 
@@ -35,12 +36,14 @@ class ReaderModel(db.Model):
     pk = db.Column(db.Integer, primary_key=True)
     first_name = db.Column(db.String(255), nullable=False)
     last_name = db.Column(db.String(255), nullable=False)
+    books = db.relationship("BookModel", backref="book", lazy='dynamic')
 
     def __repr__(self):
         return f"<{self.pk}> {self.first_name} {self.last_name}"
 
     def as_dict(self):
         return {c.name: getattr(self, c.name) for c in self.__table__.columns}
+
 
 class AuthorModel(db.Model):
     __tablename__ = "author"
@@ -48,6 +51,7 @@ class AuthorModel(db.Model):
     pk = db.Column(db.Integer, primary_key=True)
     first_name = db.Column(db.String(255), nullable=False)
     last_name = db.Column(db.String(255), nullable=False)
+    nationality = db.Column(db.String(255), nullable=True)
 
     def __repr__(self):
         return f"<{self.pk}> {self.first_name} {self.last_name}"
@@ -55,18 +59,21 @@ class AuthorModel(db.Model):
     def as_dict(self):
         return {c.name: getattr(self, c.name) for c in self.__table__.columns}
 
+
 class Books(Resource):
     def get(self):
-        books = [b.as_dict() for b in BookModel.query.all()]    # Освен да създава може и да търси в таблици
-        return {"books": books}                                 # Обръщаме всички книги като речник чрез метода as_dict
-                                                                # и връщаме речник с вложения речник от предния ред
+        books = [b.as_dict() for b in BookModel.query.all()]  # Освен да създава може и да търси в таблици
+        return {"books": books}  # Обръщаме всички книги като речник чрез метода as_dict
+        # и връщаме речник с вложения речник от предния ред
 
     def post(self):
         data = request.get_json()
-        book = BookModel(**data)  # същото но с повече писане BookModel(title=data.get('title'), author=data.get('author'))
-        db.session.add(book)    # добавяме заявката в базата данни
-        db.session.commit()      # записваме добавката в базатада данни
+        book = BookModel(
+            **data)  # същото но с повече писане BookModel(title=data.get('title'), author=data.get('author'))
+        db.session.add(book)  # добавяме заявката в базата данни
+        db.session.commit()  # записваме добавката в базатада данни
         return book.as_dict()
+
 
 # TODO
 # class Reader(Resource):
