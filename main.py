@@ -19,8 +19,12 @@ class BookModel(db.Model):  # model of book for the SQL database table
     pk = db.Column(db.Integer, primary_key=True)  # Primary key Column
     title = db.Column(db.String(255), nullable=False)  # Column for the book's name    # db.String
     author = db.Column(db.String(255), nullable=False)  # Column for the author's name
-    reader_pk = db.Column(db.Integer,
-                          db.ForeignKey("readers.pk"))  # one-to-many relationship Foreign key to Reader table pk
+    reader_pk = db.Column(db.Integer, db.ForeignKey("readers.pk"))  # one-to-many relationship Foreign key to
+    # Reader table pk. readers.pk is the name of the table and the name of the column
+    reader = db.relationship("ReaderModel") # орм-а прави join/връзка с класа ReaderModel И ни връща
+    # читателя който седи на reader_pk за книгата
+    # BookModel.query.all()[0].reader
+
 
     def __repr__(self):
         return f"<{self.pk}> {self.title} from {self.author}"
@@ -37,6 +41,8 @@ class ReaderModel(db.Model):
     first_name = db.Column(db.String(255), nullable=False)
     last_name = db.Column(db.String(255), nullable=False)
     books = db.relationship("BookModel", backref="book", lazy='dynamic')
+    # lazy='dynamic' - relationship-a се изпълнява само когато се извиква
+    # za debug ReaderModel.query.all()[0].books = връща всички книги които са закачени към читателя
 
     def __repr__(self):
         return f"<{self.pk}> {self.first_name} {self.last_name}"
@@ -62,8 +68,9 @@ class AuthorModel(db.Model):
 
 class Books(Resource):
     def get(self):
-        books = [b.as_dict() for b in BookModel.query.all()]  # Освен да създава може и да търси в таблици
-        return {"books": books}  # Обръщаме всички книги като речник чрез метода as_dict
+        books = BookModel.query.all()
+        books_data = [b.as_dict() for b in books]  # Освен да създава може и да търси в таблици
+        return {"books": books_data}  # Обръщаме всички книги като речник чрез метода as_dict
         # и връщаме речник с вложения речник от предния ред
 
     def post(self):
