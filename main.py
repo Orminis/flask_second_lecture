@@ -42,6 +42,18 @@ class ReaderModel(db.Model):
     def as_dict(self):
         return {c.name: getattr(self, c.name) for c in self.__table__.columns}
 
+class AuthorModel(db.Model):
+    __tablename__ = "author"
+
+    pk = db.Column(db.Integer, primary_key=True)
+    first_name = db.Column(db.String(255), nullable=False)
+    last_name = db.Column(db.String(255), nullable=False)
+
+    def __repr__(self):
+        return f"<{self.pk}> {self.first_name} {self.last_name}"
+
+    def as_dict(self):
+        return {c.name: getattr(self, c.name) for c in self.__table__.columns}
 
 class Books(Resource):
     def get(self):
@@ -55,6 +67,10 @@ class Books(Resource):
         db.session.add(book)    # добавяме заявката в базата данни
         db.session.commit()      # записваме добавката в базатада данни
         return book.as_dict()
+
+# TODO
+# class Reader(Resource):
+#     pass
 
 # команда която ползваме само преди да вземем миграции
 # db.create_all()
